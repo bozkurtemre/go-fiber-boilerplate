@@ -1,0 +1,27 @@
+services:
+  api:
+    container_name: fiber-boilerplate-api
+    image: fiber-boilerplate-api
+    depends_on:
+      - postgres
+    env_file:
+      - .env
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+
+  postgres:
+    container_name: fiber-postgres
+    image: postgres:16.2-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: "password"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_DB: "fiber_api"
+    volumes:
+      - fiber_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  fiber_postgres_data:
