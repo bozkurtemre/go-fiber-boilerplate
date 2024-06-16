@@ -25,7 +25,7 @@ Use the following plugins, in this boilerplate project:
 
 
 ```bash
-go run app.go
+go run main.go
 ```
 
 ### Use local container
