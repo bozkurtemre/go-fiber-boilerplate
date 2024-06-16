@@ -40,7 +40,7 @@ func main() {
 	app.Use(recover.New())
 	app.Use(requestid.New())
 	app.Use(logger.New(logger.Config{
-		Format: "${pid} ${locals:requestid} ${status} - ${method} ${path}\n",
+		Format: "${time} ${pid} ${locals:requestid} ${status} - ${method} ${path} - ${ip} ${ua} ${error}\n",
 	}))
 
 	// Health Check
