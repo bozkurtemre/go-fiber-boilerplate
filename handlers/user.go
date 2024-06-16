@@ -1,68 +1,109 @@
 package handlers
 
 import (
-	"boilerplate/database"
 	"boilerplate/models"
-	"log"
-
+	"boilerplate/repository"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
+	"strconv"
 )
 
-var validate = validator.New()
+type UserHandler struct {
+	repo     repository.UserRepository
+	validate *validator.Validate
+}
 
-func UserList(c *fiber.Ctx) error {
-	db := database.GetDB()
+func NewUserHandler(repo repository.UserRepository) *UserHandler {
+	return &UserHandler{repo, validator.New()}
+}
 
-	var users []*models.User
-	if err := db.Limit(10).Find(&users).Error; err != nil {
-		log.Printf("Error fetching users: %v\n", err)
-		return nil
+func (h *UserHandler) UserList(c *fiber.Ctx) error {
+	users, err := h.repo.GetAll(10)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
 	return c.JSON(fiber.Map{
 		"success": true,
-		"users":   users,
+		"data":    users,
 	})
 }
 
-func UserCreate(c *fiber.Ctx) error {
-	db := database.GetDB()
-
-	createUser := new(models.CreateUser)
-
-	if err := c.BodyParser(createUser); err != nil {
-		log.Printf("Error parsing JSON: %v\n", err)
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"success": false,
-			"error":   "Cannot parse JSON",
-		})
+func (h *UserHandler) UserGet(c *fiber.Ctx) error {
+	id, err := strconv.Atoi(c.Params("id"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid user ID"})
 	}
 
-	if err := validate.Struct(&createUser); err != nil {
-		log.Printf("Validation error: %v\n", err)
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"success": false,
-			"error":   err.Error(),
-		})
-	}
-
-	user := &models.User{
-		Username: createUser.Username,
-		Email:    createUser.Email,
-		Password: createUser.Password,
-	}
-
-	if err := db.Create(user).Error; err != nil {
-		log.Printf("Error inserting user: %v\n", err)
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"success": false,
-			"error":   "Cannot insert user",
-		})
+	user, err := h.repo.GetByID(uint(id))
+	if err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "User not found"})
 	}
 
 	return c.JSON(fiber.Map{
 		"success": true,
-		"user":    user,
+		"data":    user,
+	})
+}
+
+func (h *UserHandler) UserCreate(c *fiber.Ctx) error {
+	var user models.User
+	if err := c.BodyParser(&user); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	if err := h.validate.Struct(&user); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	if err := h.repo.Create(user); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"success": true,
+		"data":    user,
+	})
+}
+
+func (h *UserHandler) UserUpdate(c *fiber.Ctx) error {
+	id, err := strconv.Atoi(c.Params("id"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid user ID"})
+	}
+
+	var user models.User
+	if err := c.BodyParser(&user); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	if err := h.validate.Struct(&user); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	user.ID = uint(id)
+	if err := h.repo.Update(user); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data":    user,
+	})
+}
+
+func (h *UserHandler) UserDelete(c *fiber.Ctx) error {
+	id, err := strconv.Atoi(c.Params("id"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid user ID"})
+	}
+
+	if err := h.repo.Delete(uint(id)); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.Status(fiber.StatusNoContent).JSON(fiber.Map{
+		"success": true,
+		"data":    nil,
 	})
 }
