@@ -11,14 +11,6 @@ import (
 
 var validate = validator.New()
 
-// UserList func gets all existing users
-//
-//	@Description	Get all existing users
-//	@Tags			Users
-//	@Accept			json
-//	@Produce		json
-//	@Success		200	{array}	models.User
-//	@router			/users [get]
 func UserList(c *fiber.Ctx) error {
 	db := database.GetDB()
 
@@ -34,15 +26,6 @@ func UserList(c *fiber.Ctx) error {
 	})
 }
 
-// UserList func creates a new user
-//
-//	@Description	Create a new user
-//	@Tags			Users
-//	@Accept			json
-//	@Produce		json
-//	@Param			users	body		models.CreateUser	true	"Create User"
-//	@Success		200		{object}	models.User
-//	@router			/users [post]
 func UserCreate(c *fiber.Ctx) error {
 	db := database.GetDB()
 
