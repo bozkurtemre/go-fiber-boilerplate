@@ -62,14 +62,4 @@ make stop
 make start
 ```
 
-## Production
-
-```bash
-docker build -t gofiber .
-docker run -d -p 3000:3000 gofiber ./app -prod
-```
-
-Go to http://localhost:3000:
-
-
-![Go Fiber Docker Boilerplate](./go_fiber_boilerplate.gif)
+Go to http://localhost:8080
