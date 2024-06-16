@@ -2,6 +2,8 @@ package main
 
 import (
 	"boilerplate/repository"
+	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v2/middleware/requestid"
 	"os"
 
 	"flag"
@@ -11,7 +13,6 @@ import (
 	"boilerplate/handlers"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	_ "github.com/joho/godotenv/autoload"
 )
@@ -37,7 +38,10 @@ func main() {
 
 	// Middleware
 	app.Use(recover.New())
-	app.Use(logger.New())
+	app.Use(requestid.New())
+	app.Use(logger.New(logger.Config{
+		Format: "${pid} ${locals:requestid} ${status} - ${method} ${path}\n",
+	}))
 
 	// Health Check
 	app.Get("/", func(c *fiber.Ctx) error {
