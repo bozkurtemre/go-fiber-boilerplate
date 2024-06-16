@@ -1,6 +1,7 @@
 package main
 
 import (
+	"boilerplate/repository"
 	"os"
 
 	"flag"
@@ -41,6 +42,7 @@ func main() {
 	// Health Check
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{
+			"status":  true,
 			"message": "OK",
 		})
 	})
@@ -48,10 +50,17 @@ func main() {
 	// Group
 	v1 := app.Group("/api/v1")
 
-	// Routes
+	// User Handler
+	userRepo := repository.NewUserRepository(database.DB)
+	userHandler := handlers.NewUserHandler(userRepo)
+
+	// User Routes
 	users := v1.Group("/users")
-	users.Get("/", handlers.UserList)
-	users.Post("/", handlers.UserCreate)
+	users.Get("/", userHandler.UserList)
+	users.Get("/:id", userHandler.UserGet)
+	users.Post("/", userHandler.UserCreate)
+	users.Put("/:id", userHandler.UserUpdate)
+	users.Delete("/:id", userHandler.UserDelete)
 
 	// 404 Handler
 	app.Use(func(c *fiber.Ctx) error {

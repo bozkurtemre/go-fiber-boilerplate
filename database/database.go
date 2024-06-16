@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	db  *gorm.DB
+	DB  *gorm.DB
 	err error
 )
 
@@ -25,16 +25,12 @@ func Connect() {
 		os.Getenv("DB_PASS"),
 		os.Getenv("DB_SSLMODE"),
 	)
-	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
 
-	models.MigrateUsers(db)
+	models.MigrateUsers(DB)
 
 	fmt.Println("Connected with Database")
-}
-
-func GetDB() *gorm.DB {
-	return db
 }
